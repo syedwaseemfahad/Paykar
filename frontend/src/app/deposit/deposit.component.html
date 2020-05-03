@@ -1,0 +1,17 @@
+<div class="body"></div>
+
+		<h1>Deposit Money</h1>
+		<br>
+		<div   class="login">
+            
+				<input type="number" placeholder="*Amount" name="Amount" [(ngModel)]="Amount"><br>
+				<p >
+				<input (click)=changeAmount200()  class="btn btn-success" type="button" value="+200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<input (click)=changeAmount500()  class="btn btn-success" type="button" value="+500">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<input (click)=changeAmount1000()  class="btn btn-success" type="button" value="+1000">
+			
+			</p>
+			<div *ngIf="amountDescription!=''">
+                <span  class="text-danger">{{amountDescription}}</span></div>
+				<input (click)=deposit()  class="btn btn-success" type="button" value="Deposit">
+        </div>

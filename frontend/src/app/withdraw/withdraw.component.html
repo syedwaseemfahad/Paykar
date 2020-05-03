@@ -1,0 +1,20 @@
+<div class="body"></div>
+<h1>Withdraw money</h1>
+
+<br>
+<div class="login">
+	<input type="number" placeholder="Amount" name="Amount" [(ngModel)]="Amount"><br>
+	<p>
+		<input (click)=changeAmount200() class="btn btn-success" type="button"
+			value="-200">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input (click)=changeAmount500() class="btn btn-success" type="button"
+			value="-500">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input (click)=changeAmount1000() class="btn btn-success" type="button" value="-1000">
+	</p>
+	<div><span  *ngIf="description!=''"     class="text-danger">Insufficient balance</span></div>
+	<div *ngIf="amountDescription!=''">
+		<span  class="text-danger">{{amountDescription}}</span></div>
+	<input (click)=withdraw() class="btn btn-success" type="button" value="Withdraw">
+	<br><br>
+	
+</div>

@@ -1,0 +1,48 @@
+<div *ngIf="itr>0">
+<img style="	position: absolute;top: calc(55% - 75px);left: calc(51% - 50px);height: 70px; width: 70px;" src="https://i.gifer.com/ZZ5H.gif">
+<p style="position: absolute;top: calc(69% - 75px);left: calc(40% - 50px); color: #f7f9ff !important;font-weight: 100px;">Transaction Under Process .... Don't Refresh</p>
+</div>
+
+	<h4 *ngIf="itr==0">Thank You For Banking With Us</h4>
+
+	<h2 *ngIf="itr==0" style="font-weight: 100px" class="text-center">Your Reciept</h2>
+	<br><br>
+	<table *ngIf="itr==0" style="margin-left:50px; ;" class="table table-hover table-striped">
+		<tbody>
+			<thead>
+				<tr>
+       
+					<th style=" color: #f7f9ff !important;">ID</th>
+					<td>{{reciept.id}}</td>
+				</tr>
+				<tr>
+					<th style=" color: #f7f9ff !important;">AccountNumber</th>
+					<td>{{reciept.accountNumber}}</td>
+				</tr>
+				<tr>
+					<th style=" color: #f7f9ff !important;">Type</th>
+					<td>{{reciept.type}}</td>
+
+
+				</tr>
+				<tr>
+					<th style=" color: #f7f9ff !important;">Amount</th>
+					<td>{{reciept.amount}}</td>
+
+
+				</tr>
+				<tr>
+					<th style=" color: #f7f9ff !important;">Time</th>
+					<td>{{reciept.time}}</td>
+
+				</tr>
+				<tr>
+					<th style=" color: #f7f9ff !important;">Balance</th>
+					<td>{{reciept.balance}}</td>
+
+				</tr>
+			</thead>
+
+
+		</tbody>
+	

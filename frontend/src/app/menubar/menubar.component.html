@@ -1,0 +1,37 @@
+<header>
+    <nav class="navbar navbar-expand-md ">
+
+
+        <ul class="navbar-nav">
+
+            <li><a routerLink="/about" class="nav-link">About</a></li>
+            <li><a routerLink="/contact" class="nav-link">Contact</a></li>
+            &nbsp;&nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+
+            <li><a *ngIf="service.isUserLoggedIn()" routerLink="/deposit" class="nav-link">Deposit</a></li>
+            <li><a *ngIf="service.isUserLoggedIn()" routerLink="/withdraw" class="nav-link">Withdraw</a></li>
+            <li><a *ngIf="service.isUserLoggedIn()" routerLink="/fundtransfer" class="nav-link">Transfer funds</a></li>
+            <li><a *ngIf="service.isUserLoggedIn()" routerLink="/showtransactions" class="nav-link">Transactions</a>
+            </li>
+            <li><a *ngIf="service.isUserLoggedIn()" routerLink="/details" class="nav-link">Account Details</a></li>
+
+        </ul>
+
+        <ul class="navbar-nav navbar-collapse justify-content-end">
+            <li><a *ngIf="!service.isUserLoggedIn() " routerLink="/login" class="nav-link">Login</a>
+            </li>
+            <li><a *ngIf="service.isUserLoggedIn()" routerLink="/logout" class="nav-link">Logout</a></li>
+        </ul>
+    </nav>
+</header>
+<!-- && !service.login -->

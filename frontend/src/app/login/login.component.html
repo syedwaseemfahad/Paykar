@@ -1,0 +1,21 @@
+<div class="header">
+	<div>Paykar<span></span></div>
+</div>
+<br>
+<div class="image">
+	<img class="cropped" src="https://static.xx.fbcdn.net/rsrc.php/v3/yz/r/mdFUMX-w0Fu.png">
+</div>
+<div class="login">
+	<input type="text" placeholder="*phone Number" name="phone" [(ngModel)]="phone">
+	<div *ngIf="phoneDescription!=''">
+	<span  class="text-danger">{{phoneDescription}}</span></div>
+	<input type="password" placeholder="*password" name="password" [(ngModel)]="password">
+	<div *ngIf="passwordDescription!=''">
+	<span class="text-danger">{{passwordDescription}}</span></div>
+	<div *ngIf="!validpassword && phoneDescription=='' && passwordDescription==''">
+		<span class="text-danger">{{passworderror}}</span></div>
+	<input (click)=handleLogin() class="btn btn-success" type="button" value="Login">
+	<br><br><br>
+	<input (click)=Signup() class="btn btn-success" type="button" value="Sign Up To Create One">'
+</div>
+<h6 style=" color: #f7f9ff !important"> Paykar Helps You Send And Receive Money With The People In Your Life.</h6>

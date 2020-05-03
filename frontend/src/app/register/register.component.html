@@ -1,0 +1,66 @@
+<div class="body"></div>
+<h4>{{message}}</h4>
+
+<div class="image">
+        <img class="cropped" src="https://static.xx.fbcdn.net/rsrc.php/v3/yz/r/mdFUMX-w0Fu.png">
+</div>
+
+<div class="header">
+        <div style=" color: #f7f9ff !important;">Paykar<span></span></div>
+        <h3 style="font-family: 'Exo', sans-serif; color: #f7f9ff !important;">Create an account</h3>
+        <h5 style="font-family: 'Exo', sans-serif; color: #f7f9ff !important;">It's quick and easy.</h5>
+
+</div>
+<br>
+<div class="login">
+
+        <input type="text" placeholder="*Name" name="name" [(ngModel)]="name">
+        <div *ngIf="nameDescription==''">
+                <br>
+        </div>
+        <div *ngIf="nameDescription!=''">
+                <span  class="text-danger">{{nameDescription}}</span></div>
+               
+
+        <input type="Number" placeholder="*Mobile number" name="phone" [(ngModel)]="phone">   
+        <div *ngIf="mobileDescription==''">
+                <br>
+        </div>     
+
+        <div *ngIf="mobileDescription!=''">
+                <span  class="text-danger">{{mobileDescription}}</span></div>
+               
+        <input type="email" placeholder="*E-Mail" name="email" [(ngModel)]="email">  
+        <div *ngIf="emailDescription==''">
+                <br>
+        </div>  
+
+        <div *ngIf="emailDescription!=''">
+                <span  class="text-danger">{{emailDescription}}</span></div>
+        <input type="password" placeholder="*New password" name="password" [(ngModel)]="password">
+        <div *ngIf="passwordDescription==''">
+                <br>
+        </div>
+
+        <div *ngIf="passwordDescription!=''">
+                <span  class="text-danger">{{passwordDescription}}</span></div>
+        <input type="password"  placeholder="*Re-enter password" name="password" [(ngModel)]="password1"> 
+        <div *ngIf="password1Description==''">
+                <br>
+        </div>
+        <div *ngIf="password1Description!=''">
+                <span  class="text-danger">{{password1Description}}</span></div>
+
+                <span  class="text-danger">{{password1Description}}</span>
+                <span  class="text-danger">{{errormessage}}</span>
+
+        <input (click)=signed() class="btn btn-success" type="button" value="Sign Up">&nbsp;
+        <input (click)=goToLogin() class="btn btn-success" type="button" value="Login">
+        <br>
+        <br>
+        <br>
+</div>
+
+<h6 style=" color: #f7f9ff !important;"> Paykar Helps You Send And Receive Money With The People In Your Life.</h6>
+
+<!-- https://cdn.dribbble.com/users/517178/screenshots/2985223/wallet.gif -->

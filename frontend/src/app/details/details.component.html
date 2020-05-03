@@ -1,0 +1,54 @@
+<br><br>
+<h1>Account Details</h1>
+
+<table style="margin-left:50px" class="table table-hover table-striped" >
+  <tbody>
+    <thead>
+      <tr>
+        
+        <th style=" color: #f7f9ff !important;">Name</th>
+        <td>{{user.name}}</td>
+      </tr>
+      <tr>
+        <th style=" color: #f7f9ff !important;">MobileNumber</th>
+        <td>{{user.mobileNumber}}</td>
+      </tr>
+      <tr>
+        <th style=" color: #f7f9ff !important;">Password</th>
+        <td>{{user.password}}</td>
+
+
+      </tr>
+      <tr>
+        <th style=" color: #f7f9ff !important;">Email</th>
+        <td>{{user.email}}</td>
+
+
+      </tr>
+      <tr>
+        <th style=" color: #f7f9ff !important;">AccountNumber</th>
+        <td>{{user.accountNumber}}</td>
+
+      </tr>
+      <tr>
+        <th style=" color: #f7f9ff !important;">Balance</th>
+        <td>{{user.balance}}</td>
+
+      </tr>
+    </thead>
+
+
+  </tbody>
+  <button style="	position: absolute; top: calc(46% - 75px);	right: calc(24% - 50px);  " *ngIf="!editopen" (click)=delete() class="btn btn-info">Delete Account</button>
+  <p style="	position: absolute; top: calc(53% - 75px);	right: calc(18% - 50px);font-size: 10px;color: #f7f9ff !important;" *ngIf="!editopen">Note: Once You Delete You Will Be Redirected To Login Page</p>
+  <br>
+  <button *ngIf="!editopen" (click)=edit() class="btn btn-info">Edit Account</button>
+  <div *ngIf="editopen">
+    <div class="login">
+      <input type="text" placeholder="Name" name="name" [(ngModel)]="name"><br><br>
+     <input type="email" placeholder="E-Mail" name="email" [(ngModel)]="email"><br><br>
+       <input type="password" placeholder="New password" name="password" [(ngModel)]="password"><br><br>
+      <button (click)="change()" class="btn btn-info">Save Changes</button>
+    </div>
+  </div>
+</table>

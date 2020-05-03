@@ -1,0 +1,79 @@
+<div class="login">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  &nbsp;
+  <input type="text" placeholder="Search Transactions" name="search" [(ngModel)]="search">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <br>
+</div>
+<br>
+
+<table style="margin-left:50px" class="table table-hover table-striped">
+  
+  <thead>
+    <tr>
+      <th> <input style="background-color: Transparent; color: #f7f9ff !important;" (click)=sortById() class="btn btn-info" type="button"
+          value="TransactionID">
+      </th>
+
+      <th> <input style=" background-color: Transparent" (click)=sortByDescription() class="btn btn-info" type="button"
+          value="Transaction Description">
+      </th>
+
+      <th> <input style=" background-color: Transparent" (click)=sortByAmount() class="btn btn-info" type="button"
+          value="Amount">
+      </th>
+
+      <th> <input style=" background-color: Transparent" (click)=sortBydate() class="btn btn-info" type="button"
+          value="Date And Time">
+      </th>
+
+      <th> <input style=" background-color: Transparent" (click)=sortBybalance() class="btn btn-info" type="button"
+          value="Balance">
+      </th>
+
+
+      <!-- <th>Transaction Description</th>
+      <th>Amount</th>
+      <th>Date And Time</th>
+      <th>Balance</th> -->
+    </tr>
+  </thead>
+  <div *ngIf="searcher()"></div>
+  <tbody *ngIf="search!=''">
+    <tr *ngFor="let title of searchtrans | slice:limit1:limit2">
+      <td>{{'PK'+title.id.slice(2,title.id.length)}}</td>
+      <td>{{title.type}}</td>
+      <td>{{title.amount}}</td>
+      <td>{{title.time}}</td>
+      <td>{{title.balance}}</td>
+    </tr>
+  </tbody>
+  <tbody *ngIf="search==''">
+    <tr *ngFor="let title of trans | slice:limit1:limit2">
+      <td>{{'PK'+title.id.slice(2,title.id.length)}}</td>
+      <td>{{title.type}}</td>
+      <td>{{title.amount}}</td>
+      <td>{{title.time}}</td>
+      <td>{{title.balance}}</td>
+    </tr>
+  </tbody>
+
+
+
+</table>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+<button *ngIf="limit1>0 " (click)=new() class="btn btn-info">New Transactions</button>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<button *ngIf="(search!='' && limit2<searchtrans.length)" (click)=old() class="btn btn-info">Old Transactions</button>
+<button *ngIf="(search=='' && limit2<trans.length)" (click)=old() class="btn btn-info">Old Transactions</button>
