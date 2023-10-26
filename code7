@@ -1,0 +1,30 @@
+public class ObjectValueComparator {
+    private Map<String, Integer> attributePrecisions;
+    private int defaultPrecision = 3; // Default precision
+
+    // No-argument constructor with a default precision value
+    public ObjectValueComparator() {
+        this.attributePrecisions = new HashMap<>();
+    }
+
+    // Constructor with an attribute precision map
+    public ObjectValueComparator(Map<String, Integer> attributePrecisions) {
+        this.attributePrecisions = attributePrecisions;
+    }
+
+    public boolean objectsHaveSameValue(Object newValue, Object oldValue, String tableName, String attributeName) {
+        if (newValue == null && oldValue == null) {
+            return true; // Both values are null, consider them equal
+        } else if (newValue == null || oldValue == null) {
+            return false; // One value is null, the other is not; consider them different
+        }
+
+        String compositeKey = tableName + "." + attributeName;
+        int precision = attributePrecisions.getOrDefault(compositeKey, defaultPrecision);
+
+        // Rest of the objectsHaveSameValue method remains the same
+        // ...
+    }
+    
+    // Other methods and code
+}
