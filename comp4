@@ -6,7 +6,7 @@ import java.util.Date;
 public class ObjectValueComparator {
     private int numericPrecision = 3; // Default precision
 
-    public void setNumericPrecision(int numericPrecision) {
+    public ObjectValueComparator(int numericPrecision) {
         this.numericPrecision = numericPrecision;
     }
 
@@ -46,62 +46,4 @@ public class ObjectValueComparator {
         return obj instanceof Date;
     }
 
-    private static boolean isNumericString(String str) {
-        try {
-            new BigDecimal(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    private static BigDecimal toBigDecimal(Object obj) {
-        if (obj instanceof Number) {
-            Number number = (Number) obj;
-            return new BigDecimal(number.toString());
-        } else if (obj instanceof String) {
-            return new BigDecimal((String) obj);
-        }
-        return null;
-    }
-
-    private static String removeLeadingTrailingWhitespace(String str) {
-        return str.strip();
-    }
-
-    public static void main(String[] args) {
-        ObjectValueComparator comparator = new ObjectValueComparator();
-        comparator.setNumericPrecision(4); // Set precision
-
-        Object newValue = 10.12345;     // A double
-        Object floatValue = 10.1234567f; // A float
-        Object stringValue1 = "  10.1234500   "; // A numeric string with leading and trailing whitespaces
-        Object stringValue2 = "Hello";      // A string with leading and trailing whitespaces
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date dateValue1, dateValue2;
-
-        try {
-            dateValue1 = dateFormat.parse("2023-10-26");
-            dateValue2 = dateFormat.parse("2023-10-27");
-        } catch (ParseException e) {
-            dateValue1 = dateValue2 = null;
-        }
-
-        System.out.println("newValue and floatValue have the same value: " +
-                comparator.objectsHaveSameValue(newValue, floatValue)); // true
-        System.out.println("newValue and stringValue1 have the same value: " +
-                comparator.objectsHaveSameValue(newValue, stringValue1)); // true (ignoring extra zeros)
-        System.out.println("newValue and stringValue2 have the same value: " +
-                comparator.objectsHaveSameValue(newValue, stringValue2)); // false
-
-        System.out.println("dateValue1 and dateValue2 have the same value: " +
-                comparator.objectsHaveSameValue(dateValue1, dateValue2)); // false
-
-        // Handle cases where newValue and oldValue are null
-        Object nullValue1 = null;
-        Object nullValue2 = null;
-        System.out.println("nullValue1 and nullValue2 have the same value: " +
-                comparator.objectsHaveSameValue(nullValue1, nullValue2)); // true
-    }
-}
+    private static boolean isNumericString
