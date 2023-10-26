@@ -1,0 +1,1 @@
+The replaceAll method is used to remove trailing zeros from numeric strings. In some cases, when dealing with floating-point values, you might have numbers like "10.500" where the trailing zeros are insignificant for the comparison. By using replaceAll, we can remove those trailing zeros and compare the numbers without considering the insignificant part.
