@@ -1,0 +1,88 @@
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+
+public class ObjectValueComparator {
+    private Map<String, Integer> attributePrecisions;
+
+    public ObjectValueComparator(Map<String, Integer> attributePrecisions) {
+        this.attributePrecisions = attributePrecisions;
+    }
+
+    public boolean objectsHaveSameValue(Object newValue, Object oldValue, String tableName, String attributeName) {
+        if (newValue == null && oldValue == null) {
+            return true; // Both values are null, consider them equal
+        } else if (newValue == null || oldValue == null) {
+            return false; // One value is null, the other is not; consider them different
+        }
+
+        String compositeKey = tableName + "." + attributeName;
+        int precision = attributePrecisions.getOrDefault(compositeKey, 3); // Default precision is 3
+
+        if (isNumeric(newValue) && isNumeric(oldValue)) {
+            BigDecimal bd1 = toBigDecimal(newValue).setScale(precision, BigDecimal.ROUND_HALF_UP);
+            BigDecimal bd2 = toBigDecimal(oldValue).setScale(precision, BigDecimal.ROUND_HALF_UP);
+            return bd1.compareTo(bd2) == 0;
+        } else if (isString(newValue) && isString(oldValue)) {
+            String str1 = removeLeadingTrailingWhitespace(newValue.toString());
+            String str2 = removeLeadingTrailingWhitespace(oldValue.toString());
+            return str1.equals(str2);
+        } else if (isDate(newValue) && isDate(oldValue)) {
+            return newValue.equals(oldValue);
+        } else {
+            String str1 = newValue.toString();
+            String str2 = oldValue.toString();
+            return str1.equals(str2);
+        }
+    }
+
+    private static boolean isNumeric(Object obj) {
+        return obj instanceof Number || obj instanceof String && isNumericString((String) obj);
+    }
+
+    private static boolean isString(Object obj) {
+        return obj instanceof String;
+    }
+
+    private static boolean isDate(Object obj) {
+        return obj instanceof Date;
+    }
+
+    private static boolean isNumericString(String str) {
+        try {
+            new BigDecimal(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static BigDecimal toBigDecimal(Object obj) {
+        if (obj instanceof Number) {
+            Number number = (Number) obj;
+            return new BigDecimal(number.toString());
+        } else if (obj instanceof String) {
+            return new BigDecimal((String) obj);
+        }
+        return null;
+    }
+
+    private static String removeLeadingTrailingWhitespace(String str) {
+        return str.strip();
+    }
+
+    public static void main(String[] args) {
+        // Define attribute precisions in a map using table and attribute names as keys
+        Map<String, Integer> attributePrecisions = Map.of(
+            "table1.attribute1", 4, // Precision 4 for table1.attribute1
+            "table2.attribute2", 2  // Precision 2 for table2.attribute2
+        );
+
+        ObjectValueComparator comparator = new ObjectValueComparator(attributePrecisions);
+
+        Object newValue = 10.12345;     // A double
+        Object floatValue = 10.1234567f; // A float
+        Object stringValue1 = "  10.1234500   "; // A numeric string with leading and trailing whitespaces
+        Object stringValue2 = "Hello";     
