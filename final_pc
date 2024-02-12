@@ -1,0 +1,45 @@
+CREATE PROCEDURE YourProcedureName
+    @rollNo INT,
+    @name VARCHAR(50) = NULL
+AS
+BEGIN
+    -- Check if @name is provided
+    IF @name IS NULL
+    BEGIN
+        -- Declare a cursor to fetch all names in the same class
+        DECLARE nameCursor CURSOR FOR
+        SELECT name
+        FROM YourTableName
+        WHERE classNo = 1; -- Assuming the class number is 1
+
+        -- Declare variables to store fetched values
+        DECLARE @currentName VARCHAR(50);
+
+        -- Open the cursor
+        OPEN nameCursor;
+
+        -- Fetch the first name
+        FETCH NEXT FROM nameCursor INTO @currentName;
+
+        -- Loop through each name
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            -- Execute your logic for each name
+            -- Replace the following line with your actual logic
+            EXEC YourOldProcedure @rollNo, @currentName;
+
+            -- Fetch the next name
+            FETCH NEXT FROM nameCursor INTO @currentName;
+        END;
+
+        -- Close and deallocate the cursor
+        CLOSE nameCursor;
+        DEALLOCATE nameCursor;
+    END
+    ELSE
+    BEGIN
+        -- If @name is provided, execute your existing logic
+        -- Replace the following line with your actual logic
+        EXEC YourOldProcedure @rollNo, @name;
+    END
+END;
