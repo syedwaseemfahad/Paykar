@@ -1,0 +1,52 @@
+CREATE PROCEDURE OuterProcedure
+AS
+BEGIN
+    -- Create a temporary table to store the output
+    CREATE TABLE #TempOutput (StringValue VARCHAR(100));
+
+    -- Insert data into the temporary table based on the SQL query
+    INSERT INTO #TempOutput (StringValue)
+    SELECT YourColumn
+    FROM YourTable
+    WHERE YourCondition;
+
+    -- Declare a variable to store the current string value
+    DECLARE @CurrentValue VARCHAR(100);
+
+    -- Declare a cursor to iterate over the values in the temporary table
+    DECLARE cursorValues CURSOR FOR
+    SELECT StringValue
+    FROM #TempOutput;
+
+    -- Open the cursor
+    OPEN cursorValues;
+
+    -- Fetch the first value
+    FETCH NEXT FROM cursorValues INTO @CurrentValue;
+
+    -- Iterate over the values and call the inner procedure for each value
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        -- Execute the inner stored procedure with the current value
+        EXEC InnerProcedure @InputValue = @CurrentValue;
+
+        -- Fetch the next value
+        FETCH NEXT FROM cursorValues INTO @CurrentValue;
+    END;
+
+    -- Close and deallocate the cursor
+    CLOSE cursorValues;
+    DEALLOCATE cursorValues;
+
+    -- Drop the temporary table
+    DROP TABLE #TempOutput;
+END;
+GO
+
+CREATE PROCEDURE InnerProcedure
+    @InputValue VARCHAR(100)
+AS
+BEGIN
+    -- Inner stored procedure logic using @InputValue...
+END;
+GO
