@@ -1,0 +1,11 @@
+-- Check the number of rows in the temporary table
+DECLARE @num_rows INT;
+SELECT @num_rows = COUNT(*)
+FROM temp_high_salary_employees;
+
+-- Print all rows if the number of rows is greater than 1
+IF @num_rows > 1
+BEGIN
+    SELECT *
+    FROM temp_high_salary_employees;
+END
