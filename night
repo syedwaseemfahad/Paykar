@@ -1,13 +1,1 @@
-IF OBJECT_ID('europe_hist_all') IS NOT NULL
-BEGIN
-    DROP PROCEDURE europe_hist_all
-END
-GO
-
-CREATE PROCEDURE europe_hist_all
-AS
-BEGIN
-    -- Procedure logic to retrieve history records for all countries
-    -- If you had the original logic for europe_hist, you can adjust it here to return all countries' history.
-END
-GO
+SELECT CONVERT(DATETIME, CONVERT(VARCHAR, GETDATE(), 112)) AS MidnightDateTime
