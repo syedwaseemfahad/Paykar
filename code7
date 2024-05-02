@@ -1,30 +1,5 @@
-public class ObjectValueComparator {
-    private Map<String, Integer> attributePrecisions;
-    private int defaultPrecision = 3; // Default precision
-
-    // No-argument constructor with a default precision value
-    public ObjectValueComparator() {
-        this.attributePrecisions = new HashMap<>();
-    }
-
-    // Constructor with an attribute precision map
-    public ObjectValueComparator(Map<String, Integer> attributePrecisions) {
-        this.attributePrecisions = attributePrecisions;
-    }
-
-    public boolean objectsHaveSameValue(Object newValue, Object oldValue, String tableName, String attributeName) {
-        if (newValue == null && oldValue == null) {
-            return true; // Both values are null, consider them equal
-        } else if (newValue == null || oldValue == null) {
-            return false; // One value is null, the other is not; consider them different
-        }
-
-        String compositeKey = tableName + "." + attributeName;
-        int precision = attributePrecisions.getOrDefault(compositeKey, defaultPrecision);
-
-        // Rest of the objectsHaveSameValue method remains the same
-        // ...
-    }
-    
-    // Other methods and code
-}
+SELECT t1.A, t1.B, t1.C, t1.D AS max1, t2.D AS max2, t1.E
+FROM your_table AS t1
+JOIN your_table AS t2 ON t1.A = t2.A AND t1.B = t2.B AND t1.C = t2.C AND t1.D <> t2.D
+WHERE t1.E <> t2.E
+GROUP BY t1.A, t1.B, t1.C, t1.D, t2.D, t1.E;
