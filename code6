@@ -1,15 +1,10 @@
-SELECT 
-    CASE 
-        WHEN (exudate IS NULL OR exudate = '') THEN
-            CASE 
-                WHEN disamtsqtatus = 'E' THEN 'I'
-                ELSE 'F'
-            END
-        ELSE
-            CASE 
-                WHEN disamtsqtatus = 'E' THEN 'H'
-                WHEN disamtsqtatus = 'T' THEN 'G'
-                ELSE 'A'
-            END
-    END AS recTYP
-FROM your_table_name;
+SELECT t1.*
+FROM your_table_name t1
+JOIN (
+    SELECT create_date, name, MAX(last_upd_ts) AS max_last_upd_ts
+    FROM your_table_name
+    GROUP BY create_date, name
+) AS t2
+ON t1.create_date = t2.create_date
+AND t1.name = t2.name
+AND t1.last_upd_ts = t2.max_last_upd_ts
