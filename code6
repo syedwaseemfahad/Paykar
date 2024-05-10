@@ -27,16 +27,16 @@ def generate_unique_data_report(db_name, collection1_name, collection2_name, fro
         fromdate1_dt = datetime.now() - timedelta(hours=fromdate1)
         fromdate2_dt = datetime.now() - timedelta(hours=fromdate2)
 
-        # Query collection1 for data created after fromdate1
-        query1 = {"createdAt": {"$gt": fromdate1_dt}}
+        # Query collection1 for data created after fromdate1 with src "ABC"
+        query1 = {"createdAt": {"$gt": fromdate1_dt}, "src": "ABC"}
         cursor1 = collection1.find(query1)
 
-        # Query collection2 for data with source.createdTs after fromdate2
-        query2 = {"source.createdTs": {"$gt": fromdate2_dt}}
+        # Query collection2 for data with source.createdTs after fromdate2 and source.sourceCode "ABC"
+        query2 = {"source.createdTs": {"$gt": fromdate2_dt}, "source.sourceCode": "ABC"}
         cursor2 = collection2.find(query2)
 
         # Create a set of IDs and join dates from collection2
-        collection2_data = {(data["ID_ABC"], data["join_date"]) for data in cursor2}
+        collection2_data = {(data["ID_ABC"], data["joined_date"]) for data in cursor2}
 
         # Create a list of data from collection1 that is not in collection2
         unique_data = []
