@@ -1,6 +1,8 @@
 import pymongo
 import csv
 from datetime import datetime, timedelta
+import sys
+import getopt
 
 def generate_unique_data_report(mongo_uri, database_name, collection1_name, collection2_name, fromdate1, fromdate2):
     try:
@@ -51,32 +53,42 @@ def generate_unique_data_report(mongo_uri, database_name, collection1_name, coll
     except Exception as e:
         print("An error occurred:", e)
 
-def main():
+def main(argv):
+    mongo_uri = ''
+    database_name = ''
+    collection1_name = ''
+    collection2_name = ''
+    fromdate1 = None
+    fromdate2 = None
+
     try:
-        # Input from the user with exception handling
-        mongo_uri = input("Enter MongoDB URI: ")
-        database_name = input("Enter database name: ")
-        collection1_name = input("Enter collection1 name: ")
-        collection2_name = input("Enter collection2 name: ")
-        fromdate1 = float(input("Enter the time range for collection1 in hours (e.g., 24.5): "))
-        fromdate2 = float(input("Enter the time range for collection2 in hours (e.g., 24): "))
+        opts, args = getopt.getopt(argv,"hu:d:c:p:f:g:",["uri=","database=","collection1=","collection2=","fromdate1=","fromdate2="])
+    except getopt.GetoptError:
+        print('Usage: script.py -u <MongoDB URI> -d <database> -c <collection1> -p <collection2> -f <fromdate1> -g <fromdate2>')
+        sys.exit(2)
 
-        # Generate the report
-        generate_unique_data_report(
-            mongo_uri=mongo_uri,
-            database_name=database_name,
-            collection1_name=collection1_name,
-            collection2_name=collection2_name,
-            fromdate1=fromdate1,
-            fromdate2=fromdate2
-        )
+    for opt, arg in opts:
+        if opt == '-h':
+            print('Usage: script.py -u <MongoDB URI> -d <database> -c <collection1> -p <collection2> -f <fromdate1> -g <fromdate2>')
+            sys.exit()
+        elif opt in ("-u", "--uri"):
+            mongo_uri = arg
+        elif opt in ("-d", "--database"):
+            database_name = arg
+        elif opt in ("-c", "--collection1"):
+            collection1_name = arg
+        elif opt in ("-p", "--collection2"):
+            collection2_name = arg
+        elif opt in ("-f", "--fromdate1"):
+            fromdate1 = float(arg)
+        elif opt in ("-g", "--fromdate2"):
+            fromdate2 = float(arg)
 
-    except ValueError:
-        print("Error: Please enter a valid number for time range.")
-    except KeyboardInterrupt:
-        print("\nOperation aborted.")
-    except Exception as e:
-        print("An error occurred:", e)
+    if not all([mongo_uri, database_name, collection1_name, collection2_name, fromdate1, fromdate2]):
+        print('All parameters are required')
+        sys.exit(2)
+
+    generate_unique_data_report(mongo_uri, database_name, collection1_name, collection2_name, fromdate1, fromdate2)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
