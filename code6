@@ -4,15 +4,24 @@ from datetime import datetime, timedelta
 import sys
 import getopt
 
-def generate_unique_data_report(mongo_uri, database_name, collection1_name, collection2_name, fromdate1, fromdate2):
+def get_mongodb_collection(db_name, collection_name):
     try:
-        # Connect to MongoDB
+        mongo_uri = "abco://" + db_name + "/?maxPoolSize=150"
         client = pymongo.MongoClient(mongo_uri)
-        db = client[database_name]
+        db = client[db_name]
+        collection = db[collection_name]
+        return collection
+    except Exception as e:
+        print(f"Error accessing collection '{collection_name}':", e)
+        return None
 
-        # Define the collections
-        collection1 = db[collection1_name]
-        collection2 = db[collection2_name]
+def generate_unique_data_report(db_name, collection1_name, collection2_name, fromdate1, fromdate2):
+    try:
+        # Get collections
+        collection1 = get_mongodb_collection(db_name, collection1_name)
+        collection2 = get_mongodb_collection(db_name, collection2_name)
+        if not collection1 or not collection2:
+            return
 
         # Define the time ranges
         now = datetime.now()
@@ -47,15 +56,12 @@ def generate_unique_data_report(mongo_uri, database_name, collection1_name, coll
 
         print("Report generated successfully in", csv_file)
     
-    except pymongo.errors.ConnectionFailure as e:
-        print("Connection to MongoDB failed:", e)
-    
     except Exception as e:
         print("An error occurred:", e)
 
 def main(argv):
     mongo_uri = ''
-    database_name = ''
+    db_name = ''
     collection1_name = ''
     collection2_name = ''
     fromdate1 = None
@@ -74,7 +80,7 @@ def main(argv):
         elif opt in ("-u", "--uri"):
             mongo_uri = arg
         elif opt in ("-d", "--database"):
-            database_name = arg
+            db_name = arg
         elif opt in ("-c", "--collection1"):
             collection1_name = arg
         elif opt in ("-p", "--collection2"):
@@ -84,11 +90,18 @@ def main(argv):
         elif opt in ("-g", "--fromdate2"):
             fromdate2 = float(arg)
 
-    if not all([mongo_uri, database_name, collection1_name, collection2_name, fromdate1, fromdate2]):
+    if not all([mongo_uri, db_name, collection1_name, collection2_name, fromdate1, fromdate2]):
         print('All parameters are required')
         sys.exit(2)
 
-    generate_unique_data_report(mongo_uri, database_name, collection1_name, collection2_name, fromdate1, fromdate2)
+    try:
+        # Generate the report
+        generate_unique_data_report(db_name, collection1_name, collection2_name, fromdate1, fromdate2)
+
+    except pymongo.errors.ConnectionFailure as e:
+        print("Connection to MongoDB failed:", e)
+    except Exception as e:
+        print("An error occurred:", e)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
