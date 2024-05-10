@@ -24,27 +24,27 @@ def generate_unique_data_report(db_name, collection1_name, collection2_name, fro
             return
 
         # Define the time ranges
-        now = datetime.now()
-        fromdate1 = now - timedelta(hours=fromdate1)
-        fromdate2 = now - timedelta(hours=fromdate2)
+        fromdate1_dt = datetime.now() - timedelta(hours=fromdate1)
+        fromdate2_dt = datetime.now() - timedelta(hours=fromdate2)
 
-        # Query collection1 for data updated in the last fromdate1 hours
-        query1 = {"updatedTs": {"$gt": fromdate1}}
+        # Query collection1 for data created after fromdate1
+        query1 = {"createdAt": {"$gt": fromdate1_dt}}
         cursor1 = collection1.find(query1)
 
-        # Query collection2 for data inserted in the last fromdate2 hours
-        query2 = {"join_date": {"$gt": fromdate2}}
+        # Query collection2 for data with source.createdTs after fromdate2
+        query2 = {"source.createdTs": {"$gt": fromdate2_dt}}
         cursor2 = collection2.find(query2)
 
-        # Create a list of IDs from collection1 that are not in collection2
+        # Create a set of IDs and join dates from collection2
+        collection2_data = {(data["ID_ABC"], data["join_date"]) for data in cursor2}
+
+        # Create a list of data from collection1 that is not in collection2
         unique_data = []
         for data in cursor1:
             data_id = data.get("ID_ABC")
             join_date = data.get("join_date")
-            if data_id is not None and join_date is not None:
-                data_in_collection2 = collection2.find_one({"ID_ABC": data_id, "join_date": join_date})
-                if data_in_collection2 is None:
-                    unique_data.append({"ID_ABC": data_id, "join_date": join_date})
+            if data_id is not None and join_date is not None and (data_id, join_date) not in collection2_data:
+                unique_data.append({"ID_ABC": data_id, "join_date": join_date})
 
         # Write the unique data to a CSV file
         csv_file = "unique_data_report.csv"
@@ -55,7 +55,7 @@ def generate_unique_data_report(db_name, collection1_name, collection2_name, fro
                 writer.writerow(data)
 
         print("Report generated successfully in", csv_file)
-    
+
     except Exception as e:
         print("An error occurred:", e)
 
