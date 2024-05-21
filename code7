@@ -1,1 +1,29 @@
 python script.py -u mongodb://localhost:27017 -d mydatabase -c collection1 -p collection2 -f 24 -g 24 -o output_reports/unique_data_report.csv
+import pandas as pd
+import psycopg2
+
+# Connect to the database
+conn = psycopg2.connect(
+    host="your_host",
+    database="your_database",
+    user="your_user",
+    password="your_password"
+)
+
+# Execute your SQL query and fetch data into a DataFrame
+query = "SELECT * FROM your_table;"
+df = pd.read_sql(query, conn)
+
+# Close the connection
+conn.close()
+
+# Write DataFrame to Excel with multiple sheets
+with pd.ExcelWriter('output.xlsx', engine='openpyxl') as writer:
+    # Split data into different DataFrames if needed
+    df1 = df[df['some_column'] == 'some_condition1']
+    df2 = df[df['some_column'] == 'some_condition2']
+
+    # Write each DataFrame to a different sheet
+    df.to_excel(writer, sheet_name='Sheet1', index=False)
+    df1.to_excel(writer, sheet_name='Sheet2', index=False)
+    df2.to_excel(writer, sheet_name='Sheet3', index=False)
