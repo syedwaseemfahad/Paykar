@@ -1,12 +1,11 @@
-# Read the file and create a list with "ABC" appended to each name
-def append_abc_to_names(file_path):
+def append_string_to_names(file_path, append_str):
     try:
         with open(file_path, 'r') as file:
             # Read the names from the file
             names = file.readlines()
         
-        # Strip newline characters and append "ABC" to each name
-        modified_names = [name.strip() + "ABC" for name in names]
+        # Strip newline characters and append the provided string to each name
+        modified_names = [name.strip() + append_str for name in names]
         
         return modified_names
     except FileNotFoundError:
@@ -15,5 +14,6 @@ def append_abc_to_names(file_path):
 
 # Example usage
 file_path = 'names.txt'
-modified_names = append_abc_to_names(file_path)
+append_str = 'ABC'
+modified_names = append_string_to_names(file_path, append_str)
 print(modified_names)
