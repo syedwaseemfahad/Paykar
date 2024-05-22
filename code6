@@ -1,115 +1,19 @@
-import pymongo
-import csv
-from datetime import datetime, timedelta
-import sys
-import getopt
-
-def get_mongodb_collection(db_name, collection_name):
+# Read the file and create a list with "ABC" appended to each name
+def append_abc_to_names(file_path):
     try:
-        mongo_uri = "abco://" + db_name + "/?maxPoolSize=150"
-        client = pymongo.MongoClient(mongo_uri)
-        db = client[db_name]
-        collection = db[collection_name]
-        return collection
-    except Exception as e:
-        print(f"Error accessing collection '{collection_name}':", e)
-        return None
+        with open(file_path, 'r') as file:
+            # Read the names from the file
+            names = file.readlines()
+        
+        # Strip newline characters and append "ABC" to each name
+        modified_names = [name.strip() + "ABC" for name in names]
+        
+        return modified_names
+    except FileNotFoundError:
+        print(f"The file {file_path} was not found.")
+        return []
 
-def generate_unique_data_report(db_name, collection1_name, collection2_name, fromdate1, fromdate2, output_location):
-    try:
-        # Get collections
-        collection1 = get_mongodb_collection(db_name, collection1_name)
-        collection2 = get_mongodb_collection(db_name, collection2_name)
-        if not collection1 or not collection2:
-            return
-
-        # Define the time ranges
-        fromdate1_dt = datetime.now() - timedelta(hours=fromdate1)
-        fromdate2_dt = datetime.now() - timedelta(hours=fromdate2)
-
-        # Query collection1 for data created after fromdate1 with src "ABC"
-        query1 = {"createdAt": {"$gt": fromdate1_dt}, "src": "ABC"}
-        cursor1 = collection1.find(query1)
-
-        # Query collection2 for data with source.createdTs after fromdate2 and source.sourceCode "ABC"
-        query2 = {"source.createdTs": {"$gt": fromdate2_dt}, "source.sourceCode": "ABC"}
-        cursor2 = collection2.find(query2)
-
-        # Create a set of IDs and join dates from collection2
-        collection2_data = {(data["ID_ABC"], data["joined_date"]) for data in cursor2}
-
-        # Create a list of data from collection1 that is not in collection2
-        unique_data = []
-        for data in cursor1:
-            data_id = data.get("ID_ABC")
-            join_date = data.get("join_date")
-            if data_id is not None and join_date is not None and (data_id, join_date) not in collection2_data:
-                unique_data.append({"ID_ABC": data_id, "join_date": join_date})
-
-        # Write the unique data to a CSV file
-        csv_file = output_location
-        with open(csv_file, mode="w", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=["ID_ABC", "join_date"])
-            writer.writeheader()
-            for data in unique_data:
-                writer.writerow(data)
-
-        print("Report generated successfully in", csv_file)
-
-        # Print the content of the CSV report
-        print("CSV Report Content:")
-        with open(csv_file, mode="r") as file:
-            print(file.read())
-
-    except Exception as e:
-        print("An error occurred:", e)
-
-def main(argv):
-    mongo_uri = ''
-    db_name = ''
-    collection1_name = ''
-    collection2_name = ''
-    fromdate1 = None
-    fromdate2 = None
-    output_location = ''
-
-    try:
-        opts, args = getopt.getopt(argv,"hu:d:c:p:f:g:o:",["uri=","database=","collection1=","collection2=","fromdate1=","fromdate2=","output="])
-    except getopt.GetoptError:
-        print('Usage: script.py -u <MongoDB URI> -d <database> -c <collection1> -p <collection2> -f <fromdate1> -g <fromdate2> -o <output_location>')
-        sys.exit(2)
-
-    for opt, arg in opts:
-        if opt == '-h':
-            print('Usage: script.py -u <MongoDB URI> -d <database> -c <collection1> -p <collection2> -f <fromdate1> -g <fromdate2> -o <output_location>')
-            sys.exit()
-        elif opt in ("-u", "--uri"):
-            mongo_uri = arg
-        elif opt in ("-d", "--database"):
-            db_name = arg
-        elif opt in ("-c", "--collection1"):
-            collection1_name = arg
-        elif opt in ("-p", "--collection2"):
-            collection2_name = arg
-        elif opt in ("-f", "--fromdate1"):
-            fromdate1 = float(arg)
-        elif opt in ("-g", "--fromdate2"):
-            fromdate2 = float(arg)
-        elif opt in ("-o", "--output"):
-            output_location = arg
-
-    if not all([mongo_uri, db_name, collection1_name, collection2_name, fromdate1, fromdate2, output_location]):
-        print('All parameters are required')
-        sys.exit(2)
-
-    try:
-        # Generate the report
-        generate_unique_data_report(db_name, collection1_name, collection2_name, fromdate1, fromdate2, output_location)
-
-    except pymongo.errors.ConnectionFailure as e:
-        print("Connection to MongoDB failed:", e)
-    except Exception as e:
-        print("An error occurred:", e)
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+# Example usage
+file_path = 'names.txt'
+modified_names = append_abc_to_names(file_path)
+print(modified_names)
