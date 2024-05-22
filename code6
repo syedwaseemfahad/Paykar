@@ -1,15 +1,21 @@
 def append_string_to_names(file_path, append_str):
+    modified_names = []
+    
     try:
         with open(file_path, 'r') as file:
             # Read the names from the file
-            names = file.readlines()
-        
-        # Strip newline characters and append the provided string to each name
-        modified_names = [name.strip() + append_str for name in names]
+            for line in file:
+                name = line.strip()
+                if name:  # Check if the name is not empty
+                    modified_name = name + append_str
+                    modified_names.append(modified_name)
         
         return modified_names
     except FileNotFoundError:
         print(f"The file {file_path} was not found.")
+        return []
+    except Exception as e:
+        print(f"An error occurred: {e}")
         return []
 
 # Example usage
