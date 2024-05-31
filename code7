@@ -1,29 +1,30 @@
-python script.py -u mongodb://localhost:27017 -d mydatabase -c collection1 -p collection2 -f 24 -g 24 -o output_reports/unique_data_report.csv
-import pandas as pd
-import psycopg2
+-- Variables for today's date and start of the current year
+DECLARE @today DATE;
+DECLARE @start_of_year DATE;
 
-# Connect to the database
-conn = psycopg2.connect(
-    host="your_host",
-    database="your_database",
-    user="your_user",
-    password="your_password"
-)
+-- Set today's date and start of the current year
+SET @today = GETDATE();
+SET @start_of_year = DATEFROMPARTS(YEAR(@today), 1, 1);
 
-# Execute your SQL query and fetch data into a DataFrame
-query = "SELECT * FROM your_table;"
-df = pd.read_sql(query, conn)
+-- Calculate today's inflow
+DECLARE @today_inflow INT;
+SELECT @today_inflow = COUNT(*)
+FROM A_HIST
+WHERE CAST(create_ts AS DATE) = @today;
 
-# Close the connection
-conn.close()
+-- Calculate the yearly average inflow (excluding today)
+DECLARE @yearly_average FLOAT;
+SELECT @yearly_average = (COUNT(*) * 1.0) / DATEDIFF(DAY, @start_of_year, @today)
+FROM A_HIST
+WHERE create_ts >= @start_of_year
+  AND create_ts < @today;
 
-# Write DataFrame to Excel with multiple sheets
-with pd.ExcelWriter('output.xlsx', engine='openpyxl') as writer:
-    # Split data into different DataFrames if needed
-    df1 = df[df['some_column'] == 'some_condition1']
-    df2 = df[df['some_column'] == 'some_condition2']
-
-    # Write each DataFrame to a different sheet
-    df.to_excel(writer, sheet_name='Sheet1', index=False)
-    df1.to_excel(writer, sheet_name='Sheet2', index=False)
-    df2.to_excel(writer, sheet_name='Sheet3', index=False)
+-- Check if today's inflow is greater than 120% of the yearly average
+IF @today_inflow > (@yearly_average * 1.2)
+BEGIN
+    PRINT 'Today''s inflow is greater than 120% of the yearly average';
+END
+ELSE
+BEGIN
+    PRINT 'Today''s inflow is within the normal range';
+END;
