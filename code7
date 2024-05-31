@@ -1,30 +1,66 @@
--- Variables for today's date and start of the current year
-DECLARE @today DATE;
-DECLARE @start_of_year DATE;
-
--- Set today's date and start of the current year
-SET @today = GETDATE();
-SET @start_of_year = DATEFROMPARTS(YEAR(@today), 1, 1);
-
--- Calculate today's inflow
-DECLARE @today_inflow INT;
-SELECT @today_inflow = COUNT(*)
-FROM A_HIST
-WHERE CAST(create_ts AS DATE) = @today;
-
--- Calculate the yearly average inflow (excluding today)
-DECLARE @yearly_average FLOAT;
-SELECT @yearly_average = (COUNT(*) * 1.0) / DATEDIFF(DAY, @start_of_year, @today)
-FROM A_HIST
-WHERE create_ts >= @start_of_year
-  AND create_ts < @today;
-
--- Check if today's inflow is greater than 120% of the yearly average
-IF @today_inflow > (@yearly_average * 1.2)
+CREATE PROCEDURE CheckTodaysInflow
+AS
 BEGIN
-    PRINT 'Today''s inflow is greater than 120% of the yearly average';
-END
-ELSE
-BEGIN
-    PRINT 'Today''s inflow is within the normal range';
+    -- Variables for today's date and start of the current year
+    DECLARE @today DATE;
+    DECLARE @start_of_year DATE;
+
+    -- Set today's date and start of the current year
+    SET @today = GETDATE();
+    SET @start_of_year = DATEFROMPARTS(YEAR(@today), 1, 1);
+
+    -- Calculate today's inflow
+    DECLARE @today_inflow INT;
+    SELECT @today_inflow = COUNT(*)
+    FROM A_HIST
+    WHERE CAST(create_ts AS DATE) = @today;
+
+    -- Calculate the yearly average inflow (excluding today)
+    DECLARE @yearly_average FLOAT;
+    SELECT @yearly_average = (COUNT(*) * 1.0) / DATEDIFF(DAY, @start_of_year, @today)
+    FROM A_HIST
+    WHERE create_ts >= @start_of_year
+      AND create_ts < @today;
+
+    -- Calculate deviation
+    DECLARE @deviation FLOAT;
+    SET @deviation = @today_inflow - @yearly_average;
+
+    -- Determine if inflow increased or decreased
+    DECLARE @change_status VARCHAR(20);
+    IF @deviation > 0
+    BEGIN
+        SET @change_status = 'increased';
+    END
+    ELSE IF @deviation < 0
+    BEGIN
+        SET @change_status = 'decreased';
+    END
+    ELSE
+    BEGIN
+        SET @change_status = 'no change';
+    END;
+
+    -- Check if today's inflow is greater than 120% of the yearly average or less than 80%
+    DECLARE @inflow_status VARCHAR(50);
+    IF @today_inflow > (@yearly_average * 1.2)
+    BEGIN
+        SET @inflow_status = 'greater than 120% of the yearly average';
+    END
+    ELSE IF @today_inflow < (@yearly_average * 0.8)
+    BEGIN
+        SET @inflow_status = 'less than 80% of the yearly average';
+    END
+    ELSE
+    BEGIN
+        SET @inflow_status = 'within the normal range';
+    END;
+
+    -- Return the results
+    SELECT 
+        @yearly_average AS yearly_average,
+        @today_inflow AS today_inflow,
+        @deviation AS deviation,
+        @change_status AS change_status,
+        @inflow_status AS inflow_status;
 END;
