@@ -1,1 +1,32 @@
-Due to heavy rain, my apartment's plumbing has significant issues that need immediate attention.
+SELECT
+    'SRP' AS data_name,
+    todays_inflow,
+    yearly_avg,
+    deviation,
+    percentage_increase,
+    CASE
+        WHEN percentage_increase > 120 THEN 'Exceeds 120% of yearly average'
+        ELSE 'Within normal range'
+    END AS status
+FROM (
+    -- Calculate today's inflow
+    SELECT
+        (SELECT COUNT(*)
+         FROM A_HIST
+         WHERE CONVERT(DATE, create_ts) = CONVERT(DATE, GETDATE())) AS todays_inflow,
+        
+        -- Calculate the yearly average daily inflow
+        (SELECT AVG(daily_count)
+         FROM (
+             SELECT COUNT(*) AS daily_count
+             FROM A_HIST
+             WHERE create_ts >= DATEADD(YEAR, -1, GETDATE())
+             GROUP BY CONVERT(DATE, create_ts)
+         ) AS daily_counts) AS yearly_avg
+) AS subquery
+CROSS APPLY (
+    -- Calculate deviation and percentage increase
+    SELECT
+        todays_inflow - yearly_avg AS deviation,
+        (todays_inflow / yearly_avg) * 100 AS percentage_increase
+) AS calculations;
