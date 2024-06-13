@@ -1,0 +1,182 @@
+import time
+import os
+import sys
+import atexit
+import re
+from datetime import datetime, timedelta
+from signal import SIGTERM
+
+# Define log file path and time threshold
+LOG_FILE_PATH = '/path/to/your/logfile.log'
+TIME_THRESHOLD = timedelta(minutes=5)
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+# Define the log patterns
+START_PATTERN = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message read: (.*)')
+END_PATTERNS = [
+    re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message inserted: (.*)'),
+    re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message ignored: (.*)'),
+    re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message processed: (.*)')
+]
+
+class Daemon:
+    """A generic daemon class."""
+    def __init__(self, pidfile):
+        self.pidfile = pidfile
+
+    def daemonize(self):
+        """Daemonize the class."""
+        try:
+            pid = os.fork()
+            if pid > 0:
+                # exit first parent
+                sys.exit(0)
+        except OSError as e:
+            sys.stderr.write(f'fork #1 failed: {e.errno} ({e.strerror})\n')
+            sys.exit(1)
+
+        os.chdir('/')
+        os.setsid()
+        os.umask(0)
+
+        try:
+            pid = os.fork()
+            if pid > 0:
+                # exit from second parent
+                sys.exit(0)
+        except OSError as e:
+            sys.stderr.write(f'fork #2 failed: {e.errno} ({e.strerror})\n')
+            sys.exit(1)
+
+        # Redirect standard file descriptors
+        sys.stdout.flush()
+        sys.stderr.flush()
+        with open('/dev/null', 'r') as f:
+            os.dup2(f.fileno(), sys.stdin.fileno())
+        with open('/dev/null', 'a+') as f:
+            os.dup2(f.fileno(), sys.stdout.fileno())
+        with open('/dev/null', 'a+') as f:
+            os.dup2(f.fileno(), sys.stderr.fileno())
+
+        # Write pidfile
+        atexit.register(self.delpid)
+        pid = str(os.getpid())
+        with open(self.pidfile, 'w+') as f:
+            f.write(f'{pid}\n')
+
+    def delpid(self):
+        os.remove(self.pidfile)
+
+    def start(self):
+        """Start the daemon."""
+        try:
+            with open(self.pidfile, 'r') as pf:
+                pid = int(pf.read().strip())
+        except IOError:
+            pid = None
+
+        if pid:
+            message = f"pidfile {self.pidfile} already exists. Daemon already running?\n"
+            sys.stderr.write(message)
+            sys.exit(1)
+
+        self.daemonize()
+        self.run()
+
+    def stop(self):
+        """Stop the daemon."""
+        try:
+            with open(self.pidfile, 'r') as pf:
+                pid = int(pf.read().strip())
+        except IOError:
+            pid = None
+
+        if not pid:
+            message = f"pidfile {self.pidfile} does not exist. Daemon not running?\n"
+            sys.stderr.write(message)
+            return
+
+        try:
+            while True:
+                os.kill(pid, SIGTERM)
+                time.sleep(0.1)
+        except OSError as err:
+            err = str(err)
+            if err.find("No such process") > 0:
+                if os.path.exists(self.pidfile):
+                    os.remove(self.pidfile)
+            else:
+                sys.stderr.write(str(err) + '\n')
+                sys.exit(1)
+
+    def restart(self):
+        """Restart the daemon."""
+        self.stop()
+        self.start()
+
+    def run(self):
+        """You should override this method when you subclass Daemon."""
+        raise NotImplementedError
+
+class LogMonitorDaemon(Daemon):
+    """Daemon to monitor log file and alert if a message takes too long to process."""
+    def __init__(self, pidfile, log_file_path, time_threshold, date_format):
+        super().__init__(pidfile)
+        self.log_file_path = log_file_path
+        self.time_threshold = time_threshold
+        self.date_format = date_format
+        self.message_timestamps = {}
+
+    def run(self):
+        self.monitor_log_file()
+
+    def monitor_log_file(self):
+        with open(self.log_file_path, 'r') as logfile:
+            logfile.seek(0, os.SEEK_END)  # Move to the end of the file
+            while True:
+                line = logfile.readline()
+                if not line:
+                    time.sleep(1)
+                    continue
+
+                self.process_log_line(line)
+
+    def process_log_line(self, line):
+        start_match = START_PATTERN.match(line)
+        if start_match:
+            timestamp_str, message_id = start_match.groups()
+            timestamp = datetime.strptime(timestamp_str, DATE_FORMAT)
+            self.message_timestamps[message_id] = timestamp
+            return
+
+        for pattern in END_PATTERNS:
+            end_match = pattern.match(line)
+            if end_match:
+                timestamp_str, message_id = end_match.groups()
+                timestamp = datetime.strptime(timestamp_str, DATE_FORMAT)
+                if message_id in self.message_timestamps:
+                    start_time = self.message_timestamps.pop(message_id)
+                    if timestamp - start_time > self.time_threshold:
+                        self.alert(message_id, start_time, timestamp)
+                return
+
+    def alert(self, message_id, start_time, end_time):
+        print(f"Alert: Message {message_id} took too long to process.")
+        print(f"Start time: {start_time}, End time: {end_time}")
+
+if __name__ == "__main__":
+    daemon = LogMonitorDaemon('/tmp/log_monitor_daemon.pid', LOG_FILE_PATH, TIME_THRESHOLD, DATE_FORMAT)
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            daemon.restart()
+        else:
+            print(f"Unknown command: {sys.argv[1]}")
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print(f"Usage: {sys.argv[0]} start|stop|restart")
+        sys.exit(2)
