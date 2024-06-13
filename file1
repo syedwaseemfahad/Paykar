@@ -1,11 +1,163 @@
--- Check the number of rows in the temporary table
-DECLARE @num_rows INT;
-SELECT @num_rows = COUNT(*)
-FROM temp_high_salary_employees;
+import time
+import os
+import sys
+import re
+import logging
+from datetime import datetime, timedelta
+import atexit
 
--- Print all rows if the number of rows is greater than 1
-IF @num_rows > 1
-BEGIN
-    SELECT *
-    FROM temp_high_salary_employees;
-END
+# Configuration
+LOG_FILE_PATH = '/path/to/your/logfile.log'
+ALERT_LOG_PATH = '/path/to/your/alertfile.log'
+TIME_THRESHOLD = timedelta(minutes=5)
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+PID_FILE = '/tmp/log_monitor_daemon.pid'
+
+# Define the log patterns
+START_PATTERN = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message read: (.*)')
+END_PATTERNS = [
+    re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message inserted: (.*)'),
+    re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message ignored: (.*)'),
+    re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).*Message processed: (.*)')
+]
+
+message_timestamps = {}
+
+# Set up logging
+logging.basicConfig(filename=ALERT_LOG_PATH, level=logging.INFO,
+                    format='%(asctime)s %(message)s', datefmt=DATE_FORMAT)
+
+def daemonize():
+    """Daemonize the process."""
+    try:
+        pid = os.fork()
+        if pid > 0:
+            sys.exit(0)
+    except OSError as e:
+        sys.stderr.write('fork #1 failed: {0} ({1})\n'.format(e.errno, e.strerror))
+        sys.exit(1)
+
+    os.chdir('/')
+    os.setsid()
+    os.umask(0)
+
+    try:
+        pid = os.fork()
+        if pid > 0:
+            sys.exit(0)
+    except OSError as e:
+        sys.stderr.write('fork #2 failed: {0} ({1})\n'.format(e.errno, e.strerror))
+        sys.exit(1)
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+    with open('/dev/null', 'r') as f:
+        os.dup2(f.fileno(), sys.stdin.fileno())
+    with open('/dev/null', 'a+') as f:
+        os.dup2(f.fileno(), sys.stdout.fileno())
+    with open('/dev/null', 'a+') as f:
+        os.dup2(f.fileno(), sys.stderr.fileno())
+
+    atexit.register(delpid)
+    pid = str(os.getpid())
+    with open(PID_FILE, 'w+') as f:
+        f.write(pid + '\n')
+
+def delpid():
+    os.remove(PID_FILE)
+
+def start():
+    """Start the daemon."""
+    try:
+        with open(PID_FILE, 'r') as pf:
+            pid = int(pf.read().strip())
+    except IOError:
+        pid = None
+
+    if pid:
+        message = "pidfile {0} already exists. Daemon already running?\n".format(PID_FILE)
+        sys.stderr.write(message)
+        sys.exit(1)
+
+    daemonize()
+    run()
+
+def stop():
+    """Stop the daemon."""
+    try:
+        with open(PID_FILE, 'r') as pf:
+            pid = int(pf.read().strip())
+    except IOError:
+        pid = None
+
+    if not pid:
+        message = "pidfile {0} does not exist. Daemon not running?\n".format(PID_FILE)
+        sys.stderr.write(message)
+        return
+
+    try:
+        while True:
+            os.kill(pid, 15)
+            time.sleep(0.1)
+    except OSError as err:
+        err = str(err)
+        if err.find("No such process") > 0:
+            if os.path.exists(PID_FILE):
+                os.remove(PID_FILE)
+        else:
+            sys.stderr.write(err + '\n')
+            sys.exit(1)
+
+def run():
+    monitor_log_file()
+
+def monitor_log_file():
+    with open(LOG_FILE_PATH, 'r') as logfile:
+        logfile.seek(0, os.SEEK_END)  # Move to the end of the file
+        while True:
+            line = logfile.readline()
+            if not line:
+                time.sleep(1)
+                continue
+
+            process_log_line(line)
+
+def process_log_line(line):
+    start_match = START_PATTERN.match(line)
+    if start_match:
+        timestamp_str, message_id = start_match.groups()
+        timestamp = datetime.strptime(timestamp_str, DATE_FORMAT)
+        message_timestamps[message_id] = timestamp
+        return
+
+    for pattern in END_PATTERNS:
+        end_match = pattern.match(line)
+        if end_match:
+            timestamp_str, message_id = end_match.groups()
+            timestamp = datetime.strptime(timestamp_str, DATE_FORMAT)
+            if message_id in message_timestamps:
+                start_time = message_timestamps.pop(message_id)
+                if timestamp - start_time > TIME_THRESHOLD:
+                    alert(message_id, start_time, timestamp)
+            return
+
+def alert(message_id, start_time, end_time):
+    logging.info("Alert: Message {0} took too long to process. Start time: {1}, End time: {2}".format(
+        message_id, start_time, end_time))
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            start()
+        elif 'stop' == sys.argv[1]:
+            stop()
+        elif 'restart' == sys.argv[1]:
+            stop()
+            start()
+        else:
+            print("Unknown command: {0}".format(sys.argv[1]))
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print("Usage: {0} start|stop|restart".format(sys.argv[0]))
+        sys.exit(2)
