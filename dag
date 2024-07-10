@@ -1,0 +1,91 @@
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from datetime import datetime, timedelta
+from pymongo import MongoClient
+from confluent_kafka import Producer
+
+# Default arguments for the DAG
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2023, 7, 10),
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
+# Kafka configuration
+KAFKA_TOPIC = '<your_kafka_topic>'
+KAFKA_CONF = {
+    'bootstrap.servers': '<your_kafka_broker>'
+}
+
+# MongoDB configuration
+MONGO_DB1_URI = '<mongodb1_uri>'
+MONGO_DB1_NAME = '<mongodb1_db_name>'
+MONGO_DB1_COLLECTION = '<mongodb1_collection_name>'
+
+MONGO_DB2_URI = '<mongodb2_uri>'
+MONGO_DB2_NAME = '<mongodb2_db_name>'
+MONGO_DB2_COLLECTION = '<mongodb2_collection_name>'
+
+QUERY = {'your_query_key': 'your_query_value'}
+
+# DAG definition
+dag = DAG(
+    'mongodb_to_kafka',
+    default_args=default_args,
+    description='A simple DAG to read from MongoDB and send to Kafka',
+    schedule_interval=timedelta(days=1),
+)
+
+def connect_to_mongo(uri, db_name, collection_name):
+    client = MongoClient(uri)
+    db = client[db_name]
+    collection = db[collection_name]
+    return collection
+
+def fetch_listings():
+    collection = connect_to_mongo(MONGO_DB1_URI, MONGO_DB1_NAME, MONGO_DB1_COLLECTION)
+    listings = collection.find(QUERY)
+    listing_ids = [listing['_id'] for listing in listings]
+    return listing_ids
+
+def fetch_data_from_raw(listing_ids, **context):
+    collection = connect_to_mongo(MONGO_DB2_URI, MONGO_DB2_NAME, MONGO_DB2_COLLECTION)
+    data = []
+    for _id in listing_ids:
+        raw_data = collection.find_one({'_id': _id})
+        if raw_data:
+            data.append(raw_data)
+    context['task_instance'].xcom_push(key='raw_data', value=data)
+
+def send_to_kafka(**context):
+    data = context['task_instance'].xcom_pull(key='raw_data', task_ids='fetch_data_from_raw')
+    producer = Producer(KAFKA_CONF)
+    for item in data:
+        producer.produce(KAFKA_TOPIC, value=str(item))
+    producer.flush()
+
+fetch_listings_task = PythonOperator(
+    task_id='fetch_listings',
+    python_callable=fetch_listings,
+    dag=dag,
+)
+
+fetch_data_from_raw_task = PythonOperator(
+    task_id='fetch_data_from_raw',
+    python_callable=fetch_data_from_raw,
+    provide_context=True,
+    dag=dag,
+)
+
+send_to_kafka_task = PythonOperator(
+    task_id='send_to_kafka',
+    python_callable=send_to_kafka,
+    provide_context=True,
+    dag=dag,
+)
+
+fetch_listings_task >> fetch_data_from_raw_task >> send_to_kafka_task
