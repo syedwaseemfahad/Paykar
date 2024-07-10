@@ -1,0 +1,110 @@
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from datetime import datetime, timedelta
+from pymongo import MongoClient
+from confluent_kafka import Producer
+
+# Default arguments for the DAG
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2023, 7, 10),
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
+# Parameterized configurations
+KAFKA_TOPIC = '<your_kafka_topic>'
+KAFKA_CONF = {
+    'bootstrap.servers': '<your_kafka_broker>'
+}
+
+MONGO_DB1_URI = '<mongodb1_uri>'
+MONGO_DB1_NAME = 'abcd_steel'
+MONGO_DB1_COLLECTION = 'steel_events'
+
+MONGO_DB2_URI = '<mongodb2_uri>'
+MONGO_DB2_NAME = 'abcd_rust'
+MONGO_DB2_COLLECTION = 'rust_events'
+
+# Function to get today's date in yyyymmdd format
+def get_today_date():
+    return datetime.now().strftime('%Y%m%d')
+
+# DAG definition
+dag = DAG(
+    'mongodb_to_kafka',
+    default_args=default_args,
+    description='A simple DAG to read from MongoDB and send to Kafka',
+    schedule_interval='@daily',  # Run at midnight every day
+)
+
+def connect_to_mongo(uri, db_name, collection_name):
+    client = MongoClient(uri)
+    db = client[db_name]
+    collection = db[collection_name]
+    return collection
+
+def fetch_idBBUniques(execution_date, **context):
+    today_date = execution_date.strftime('%Y%m%d')
+    collection = connect_to_mongo(MONGO_DB1_URI, MONGO_DB1_NAME, MONGO_DB1_COLLECTION)
+    query = {
+        'eventDetails.vendorCode': 'BBCANS',
+        'eventDetails.eventType': 'STOCK_SPLT',
+        'eventDetails.adjustmentDate': today_date
+    }
+    documents = collection.find(query)
+    idBBUnique_list = [doc['idBBUnique'] for doc in documents]
+    return idBBUnique_list
+
+def fetch_latest_data_from_raw(idBBUnique_list, **context):
+    collection = connect_to_mongo(MONGO_DB2_URI, MONGO_DB2_NAME, MONGO_DB2_COLLECTION)
+    data = []
+    for idBBUnique in idBBUnique_list:
+        pipeline = [
+            {'$match': {'message.ID_BB_UNIQUE': idBBUnique, 'src': 'Bloomberg:CANS'}},
+            {'$sort': {'message.ID_BB_UNIQUE': 1, 'message.EFF_DT': 1, 'createdAt': -1}},
+            {
+                '$group': {
+                    '_id': {'ID_BB_UNIQUE': '$message.ID_BB_UNIQUE', 'EFF_DT': '$message.EFF_DT'},
+                    'latest_record': {'$first': '$$ROOT'}
+                }
+            },
+            {'$replaceRoot': {'newRoot': '$latest_record'}}
+        ]
+        raw_data = list(collection.aggregate(pipeline))
+        if raw_data:
+            data.extend(raw_data)
+    context['task_instance'].xcom_push(key='raw_data', value=data)
+
+def send_to_kafka(**context):
+    data = context['task_instance'].xcom_pull(key='raw_data', task_ids='fetch_latest_data_from_raw')
+    producer = Producer(KAFKA_CONF)
+    for item in data:
+        producer.produce(KAFKA_TOPIC, value=str(item))
+    producer.flush()
+
+fetch_idBBUniques_task = PythonOperator(
+    task_id='fetch_idBBUniques',
+    python_callable=fetch_idBBUniques,
+    provide_context=True,
+    dag=dag,
+)
+
+fetch_latest_data_from_raw_task = PythonOperator(
+    task_id='fetch_latest_data_from_raw',
+    python_callable=fetch_latest_data_from_raw,
+    provide_context=True,
+    dag=dag,
+)
+
+send_to_kafka_task = PythonOperator(
+    task_id='send_to_kafka',
+    python_callable=send_to_kafka,
+    provide_context=True,
+    dag=dag,
+)
+
+fetch_idBBUniques_task >> fetch_latest_data_from_raw_task >> send_to_kafka_task
