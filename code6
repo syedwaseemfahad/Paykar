@@ -1,24 +1,115 @@
-SELECT
-    'SRP' AS data_name,
-    todays_inflow,
-    yearly_avg,
-    (todays_inflow - yearly_avg) AS deviation,
-    ((todays_inflow / yearly_avg) * 100) AS percentage_increase,
-    CASE
-        WHEN ((todays_inflow / yearly_avg) * 100) > 120 THEN 'Exceeds 120% of yearly average'
-        ELSE 'Within normal range'
-    END AS status
-FROM (
-    SELECT 
-        (SELECT COUNT(*)
-         FROM A_HIST
-         WHERE CONVERT(DATE, create_ts) = CONVERT(DATE, GETDATE())) AS todays_inflow,
-        
-        (SELECT AVG(daily_count)
-         FROM (
-             SELECT COUNT(*) AS daily_count
-             FROM A_HIST
-             WHERE create_ts >= DATEADD(YEAR, -1, GETDATE())
-             GROUP BY CONVERT(DATE, create_ts)
-         ) AS daily_counts) AS yearly_avg
-) AS subquery
+---+ Data Quality Checks
+
+This TWiki page documents the data quality checks performed by the team. Each section below details a specific check, including its purpose, method, and results.
+
+---++ Table of Contents
+
+%TOC%
+
+---++ Overview
+
+Data quality checks are essential to ensure the integrity, accuracy, and reliability of the data we work with. This document outlines the various checks implemented by our team.
+
+---++ Data Quality Check 1: [Check Name]
+
+*Purpose:* 
+<verbatim>
+The purpose of this check is to ensure that [brief description of the check’s objective].
+</verbatim>
+
+*Method:*
+<verbatim>
+- **Step 1:** [Describe the first step]
+- **Step 2:** [Describe the second step]
+- **Step 3:** [Describe the third step]
+- **...**
+</verbatim>
+
+*Results:*
+<verbatim>
+- **Date Conducted:** [Date]
+- **Outcome:** [Describe the outcome or findings]
+- **Issues Identified:** [List any issues found]
+- **Actions Taken:** [Describe actions taken to resolve issues]
+</verbatim>
+
+*Notes:*
+<verbatim>
+- [Any additional notes]
+</verbatim>
+
+---++ Data Quality Check 2: [Check Name]
+
+*Purpose:* 
+<verbatim>
+The purpose of this check is to ensure that [brief description of the check’s objective].
+</verbatim>
+
+*Method:*
+<verbatim>
+- **Step 1:** [Describe the first step]
+- **Step 2:** [Describe the second step]
+- **Step 3:** [Describe the third step]
+- **...**
+</verbatim>
+
+*Results:*
+<verbatim>
+- **Date Conducted:** [Date]
+- **Outcome:** [Describe the outcome or findings]
+- **Issues Identified:** [List any issues found]
+- **Actions Taken:** [Describe actions taken to resolve issues]
+</verbatim>
+
+*Notes:*
+<verbatim>
+- [Any additional notes]
+</verbatim>
+
+---++ Data Quality Check 3: [Check Name]
+
+*Purpose:* 
+<verbatim>
+The purpose of this check is to ensure that [brief description of the check’s objective].
+</verbatim>
+
+*Method:*
+<verbatim>
+- **Step 1:** [Describe the first step]
+- **Step 2:** [Describe the second step]
+- **Step 3:** [Describe the third step]
+- **...**
+</verbatim>
+
+*Results:*
+<verbatim>
+- **Date Conducted:** [Date]
+- **Outcome:** [Describe the outcome or findings]
+- **Issues Identified:** [List any issues found]
+- **Actions Taken:** [Describe actions taken to resolve issues]
+</verbatim>
+
+*Notes:*
+<verbatim>
+- [Any additional notes]
+</verbatim>
+
+---++ Conclusion
+
+Maintaining high data quality standards is crucial for our operations. Regular checks help identify and resolve issues promptly, ensuring the reliability of our data.
+
+If you have any questions or need further information, please contact [Team/Person].
+
+---++ Appendices
+
+---+++ Appendix A: Glossary
+
+*Term 1:* Definition
+*Term 2:* Definition
+*Term 3:* Definition
+
+---+++ Appendix B: References
+
+1. [Reference 1]
+2. [Reference 2]
+3. [Reference 3]
