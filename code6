@@ -1,115 +1,50 @@
----+ Data Quality Checks
+import os
+import json
+from datetime import datetime
 
-This TWiki page documents the data quality checks performed by the team. Each section below details a specific check, including its purpose, method, and results.
+def save_data_to_file(data, base_dir='mydir'):
+    """
+    Saves the given data into a file based on 'tradeDate' and 'user_id'.
 
----++ Table of Contents
+    Args:
+        data (dict): The data to be saved.
+        base_dir (str): The base directory where data will be saved.
 
-%TOC%
+    Returns:
+        str: The path of the saved file.
+    """
+    # Extract tradeDate and user_id from the data
+    trade_date = data.get('tradeDate')
+    user_id = data.get('user_id')
+    
+    if not trade_date or not user_id:
+        raise ValueError("Both 'tradeDate' and 'user_id' must be present in the data.")
 
----++ Overview
+    # Convert tradeDate to string if it's a datetime object
+    if isinstance(trade_date, datetime):
+        trade_date = trade_date.strftime('%Y%m%d')
+    
+    # Create directory path based on tradeDate
+    dir_path = os.path.join(base_dir, trade_date)
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(dir_path, exist_ok=True)
 
-Data quality checks are essential to ensure the integrity, accuracy, and reliability of the data we work with. This document outlines the various checks implemented by our team.
+    # Create file path for the specific user
+    file_path = os.path.join(dir_path, f"{user_id}.json")
 
----++ Data Quality Check 1: [Check Name]
+    # Write the data to the file
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=4)
+    
+    return file_path
 
-*Purpose:* 
-<verbatim>
-The purpose of this check is to ensure that [brief description of the check’s objective].
-</verbatim>
+# Example usage
+data = {
+    "tradeDate": "20240813",
+    "user_id": "userid1",
+    "some_other_data": "example_value"
+}
 
-*Method:*
-<verbatim>
-- **Step 1:** [Describe the first step]
-- **Step 2:** [Describe the second step]
-- **Step 3:** [Describe the third step]
-- **...**
-</verbatim>
-
-*Results:*
-<verbatim>
-- **Date Conducted:** [Date]
-- **Outcome:** [Describe the outcome or findings]
-- **Issues Identified:** [List any issues found]
-- **Actions Taken:** [Describe actions taken to resolve issues]
-</verbatim>
-
-*Notes:*
-<verbatim>
-- [Any additional notes]
-</verbatim>
-
----++ Data Quality Check 2: [Check Name]
-
-*Purpose:* 
-<verbatim>
-The purpose of this check is to ensure that [brief description of the check’s objective].
-</verbatim>
-
-*Method:*
-<verbatim>
-- **Step 1:** [Describe the first step]
-- **Step 2:** [Describe the second step]
-- **Step 3:** [Describe the third step]
-- **...**
-</verbatim>
-
-*Results:*
-<verbatim>
-- **Date Conducted:** [Date]
-- **Outcome:** [Describe the outcome or findings]
-- **Issues Identified:** [List any issues found]
-- **Actions Taken:** [Describe actions taken to resolve issues]
-</verbatim>
-
-*Notes:*
-<verbatim>
-- [Any additional notes]
-</verbatim>
-
----++ Data Quality Check 3: [Check Name]
-
-*Purpose:* 
-<verbatim>
-The purpose of this check is to ensure that [brief description of the check’s objective].
-</verbatim>
-
-*Method:*
-<verbatim>
-- **Step 1:** [Describe the first step]
-- **Step 2:** [Describe the second step]
-- **Step 3:** [Describe the third step]
-- **...**
-</verbatim>
-
-*Results:*
-<verbatim>
-- **Date Conducted:** [Date]
-- **Outcome:** [Describe the outcome or findings]
-- **Issues Identified:** [List any issues found]
-- **Actions Taken:** [Describe actions taken to resolve issues]
-</verbatim>
-
-*Notes:*
-<verbatim>
-- [Any additional notes]
-</verbatim>
-
----++ Conclusion
-
-Maintaining high data quality standards is crucial for our operations. Regular checks help identify and resolve issues promptly, ensuring the reliability of our data.
-
-If you have any questions or need further information, please contact [Team/Person].
-
----++ Appendices
-
----+++ Appendix A: Glossary
-
-*Term 1:* Definition
-*Term 2:* Definition
-*Term 3:* Definition
-
----+++ Appendix B: References
-
-1. [Reference 1]
-2. [Reference 2]
-3. [Reference 3]
+file_path = save_data_to_file(data)
+print(f"Data saved to {file_path}")
