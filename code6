@@ -1,8 +1,1 @@
-# Ensure D has unique values, if not, you can use sort and uniq
-sort D | uniq > D_unique
-
-# Iterate over each value in D_unique and count its occurrences in C
-while read -r value; do
-    count=$(grep -c "^$value$" C)
-    echo "$value: $count"
-done < D_unique
+while read -r value; do echo "$value: $(grep -c "^$value$" C)"; done < D
