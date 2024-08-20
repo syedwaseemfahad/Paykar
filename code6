@@ -1,1 +1,8 @@
-awk 'NR==FNR {count[$1]++; next} FNR==1 {count[$1]++} {print $1 ": " (count[$1] ? count[$1] : 0)}' <(sort C | uniq -c) D
+# Ensure D has unique values, if not, you can use sort and uniq
+sort D | uniq > D_unique
+
+# Iterate over each value in D_unique and count its occurrences in C
+while read -r value; do
+    count=$(grep -c "^$value$" C)
+    echo "$value: $count"
+done < D_unique
