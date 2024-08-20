@@ -1,1 +1,1 @@
-while read -r value; do echo "$value: $(grep -c "^$value$" C)"; done < D
+command | awk '{print substr($0, length($0)-4, 4)}'
