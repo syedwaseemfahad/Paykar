@@ -1,1 +1,29 @@
-command | awk '{print substr($0, length($0)-4, 4)}'
+package com.yourproject.constant;
+
+public enum ProductLimit {
+    MAX_PRODUCT_COUNT(100);
+
+    private final int value;
+
+    // Constructor for the enum to assign the constant value
+    ProductLimit(int value) {
+        this.value = value;
+    }
+
+    // Method to retrieve the value
+    public int getValue() {
+        return value;
+    }
+}
+
+
+import com.yourproject.constant.ProductLimit;
+
+public class ProductService {
+
+    public void checkProductCount(int productCount) throws IllegalArgumentException {
+        if (productCount > ProductLimit.MAX_PRODUCT_COUNT.getValue()) {
+            throw new IllegalArgumentException("Product count exceeds the maximum allowed limit of " + ProductLimit.MAX_PRODUCT_COUNT.getValue());
+        }
+    }
+}
