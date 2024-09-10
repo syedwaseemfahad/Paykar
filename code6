@@ -1,29 +1,16 @@
-package com.yourproject.constant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 
-public enum ProductLimit {
-    MAX_PRODUCT_COUNT(100);
-
-    private final int value;
-
-    // Constructor for the enum to assign the constant value
-    ProductLimit(int value) {
-        this.value = value;
-    }
-
-    // Method to retrieve the value
-    public int getValue() {
-        return value;
-    }
-}
-
-
-import com.yourproject.constant.ProductLimit;
-
-public class ProductService {
-
-    public void checkProductCount(int productCount) throws IllegalArgumentException {
-        if (productCount > ProductLimit.MAX_PRODUCT_COUNT.getValue()) {
-            throw new IllegalArgumentException("Product count exceeds the maximum allowed limit of " + ProductLimit.MAX_PRODUCT_COUNT.getValue());
-        }
+public class Main {
+    public static void main(String[] args) {
+        // Get the current time in EST/EDT
+        ZonedDateTime estTime = ZonedDateTime.now(ZoneId.of("America/New_York"));
+        
+        // Format the date to dd/MM/yyyy
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String formattedDate = estTime.format(formatter);
+        
+        System.out.println(formattedDate);
     }
 }
