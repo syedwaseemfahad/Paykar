@@ -1,16 +1,28 @@
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.ZoneId;
+from airflow.models import Variable
 
-public class Main {
-    public static void main(String[] args) {
-        // Get the current time in EST/EDT
-        ZonedDateTime estTime = ZonedDateTime.now(ZoneId.of("America/New_York"));
-        
-        // Format the date to dd/MM/yyyy
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String formattedDate = estTime.format(formatter);
-        
-        System.out.println(formattedDate);
-    }
+# Get the variable and deserialize it to a Python dictionary
+my_json = Variable.get("my_json_variable", deserialize_json=True)
+
+# Use the JSON data in your task
+def process_json(**kwargs):
+    # Example: Accessing values from the JSON
+    value1 = my_json.get("key1")
+    value2 = my_json.get("key2")
+    print(f"Key1: {value1}, Key2: {value2}")
+
+# Define your DAG
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from datetime import datetime
+
+default_args = {
+    'start_date': datetime(2024, 1, 1),
 }
+
+with DAG('example_json_dag', default_args=default_args, schedule_interval='@daily') as dag:
+    
+    process_task = PythonOperator(
+        task_id='process_json_task',
+        python_callable=process_json,
+        provide_context=True,
+    )
