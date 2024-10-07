@@ -1,16 +1,8 @@
-Here’s the updated version:
+In my role, I have upheld the firm’s conduct, compliance, and risk management policies by:
 
-In the Divproj team, I contributed to several key projects:
+	1.	Ensuring Data Integrity: Addressed legacy data outages and ensured reliable, accurate data flow.
+	2.	Supporting Key Migrations: Successfully handled the T+1 settlement migration, mitigating risks and ensuring smooth operations.
+	3.	Compliance in Deployments: Adhered to security and compliance standards during projects like the Aurora to AQ host migration.
+	4.	Effective Communication: Maintained clear communication to align all changes with the firm’s risk management protocols.
 
-	1.	Aurora to AQ host migration: Addressed a major hygiene issue across the Divproj codebase.
-	2.	T+1 settlement migration: Successfully handled this crucial migration.
-	3.	Onboarding Divproj to PANDQ: Enabled users to view exception data on the dashboard.
-	4.	Played a significant role in resolving numerous legacy data outages by swiftly troubleshooting issues, identifying root causes, and implementing sustainable solutions. This experience enhanced both my technical skills and commitment to the team’s reliability.
-	5.	Acted as the Single Point of Contact (SPOC) for legacy code issues and new implementations in the Divproj space (non-fabric).
-
-In July 2024, I transitioned to the Index and ETF team, where I accomplished the following:
-
-	1.	Fixed the iShares flow.
-	2.	Enhanced the Solap2ETL service by adding several minor functionalities.
-
-Let me know if it’s good now!
+These actions contributed to minimizing operational risks and maintaining compliance.
