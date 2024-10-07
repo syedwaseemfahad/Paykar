@@ -1,28 +1,16 @@
-from airflow.models import Variable
+Here’s the updated version:
 
-# Get the variable and deserialize it to a Python dictionary
-my_json = Variable.get("my_json_variable", deserialize_json=True)
+In the Divproj team, I contributed to several key projects:
 
-# Use the JSON data in your task
-def process_json(**kwargs):
-    # Example: Accessing values from the JSON
-    value1 = my_json.get("key1")
-    value2 = my_json.get("key2")
-    print(f"Key1: {value1}, Key2: {value2}")
+	1.	Aurora to AQ host migration: Addressed a major hygiene issue across the Divproj codebase.
+	2.	T+1 settlement migration: Successfully handled this crucial migration.
+	3.	Onboarding Divproj to PANDQ: Enabled users to view exception data on the dashboard.
+	4.	Played a significant role in resolving numerous legacy data outages by swiftly troubleshooting issues, identifying root causes, and implementing sustainable solutions. This experience enhanced both my technical skills and commitment to the team’s reliability.
+	5.	Acted as the Single Point of Contact (SPOC) for legacy code issues and new implementations in the Divproj space (non-fabric).
 
-# Define your DAG
-from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from datetime import datetime
+In July 2024, I transitioned to the Index and ETF team, where I accomplished the following:
 
-default_args = {
-    'start_date': datetime(2024, 1, 1),
-}
+	1.	Fixed the iShares flow.
+	2.	Enhanced the Solap2ETL service by adding several minor functionalities.
 
-with DAG('example_json_dag', default_args=default_args, schedule_interval='@daily') as dag:
-    
-    process_task = PythonOperator(
-        task_id='process_json_task',
-        python_callable=process_json,
-        provide_context=True,
-    )
+Let me know if it’s good now!
