@@ -1,16 +1,19 @@
-def remove_cy_cn_duplicates(data):
-    rows_by_attributes = {}
+def find_and_remove_matching_rows(data):
     to_remove = set()
-
-    for index, row in enumerate(data):
-        key = (row[0], row[1], row[2], row[4])
-
-        if key in rows_by_attributes:
-            prev_index = rows_by_attributes[key]
-            if {row[3], data[prev_index][3]} == {'CY', 'CN'}:
-                to_remove.add(index)
-                to_remove.add(prev_index)
-        else:
-            rows_by_attributes[key] = index
-
-    return [row for i, row in enumerate(data) if i not in to_remove]
+    for i in range(len(data)):
+        for j in range(i + 1, len(data)):
+            if i in to_remove or j in to_remove:
+                continue
+            
+            row1, row2 = data[i], data[j]
+            
+            if (row1[4] == 'CNY.CASH' and row2[4] == 'CNH.CASH') or (row1[4] == 'CNH.CASH' and row2[4] == 'CNY.CASH'):
+                if (row1[0] == row2[1] and row1[1] == row2[0] and  
+                    row1[2] == row2[2] and  
+                    row1[6] == row2[6]):    
+                    to_remove.update([i, j])  
+    
+    for index in sorted(to_remove, reverse=True):
+        del data[index]
+    
+    return data
