@@ -1,31 +1,36 @@
-# Path to the file
-input_file_path = "path/to/your/large_file.txt"
-output_file_path = "path/to/your/modified_large_file.txt"
+import csv
+
+# Path to the input CSV file and output CSV file
+input_file_path = "path/to/your/large_file.csv"
+output_file_path = "path/to/your/modified_large_file.csv"
 
 # Line number to start modifications (Python is zero-indexed, so subtract 1)
 start_line = 1497590
 
-# Open the file for reading and writing
-with open(input_file_path, 'r') as infile, open(output_file_path, 'w') as outfile:
-    # Iterate through each line with an index
-    for line_num, line in enumerate(infile):
-        # Split the line into columns
-        columns = line.strip().split()
-
-        # If we're past the starting line, modify the line
+# Open the input and output CSV files
+with open(input_file_path, 'r', newline='', encoding='utf-8') as infile, \
+     open(output_file_path, 'w', newline='', encoding='utf-8') as outfile:
+    
+    # Create CSV reader and writer objects
+    csv_reader = csv.reader(infile)
+    csv_writer = csv.writer(outfile)
+    
+    # Iterate through each row with an index
+    for line_num, row in enumerate(csv_reader):
+        # If we're past the starting line, modify the row
         if line_num >= start_line:
-            # Check if the line has at least six columns
-            if len(columns) >= 6:
-                # Remove the fifth column and shift remaining columns to the left
-                modified_columns = columns[:4] + columns[5:]
+            # Ensure the row has at least 5 columns to modify
+            if len(row) >= 5:
+                # Remove the 5th column (index 4) and shift remaining columns
+                modified_row = row[:4] + row[5:]
             else:
-                # If there are fewer than six columns, keep the line as it is
-                modified_columns = columns
+                # If there are fewer than 5 columns, leave the row unchanged
+                modified_row = row
         else:
-            # Before the specified line, keep the line as it is
-            modified_columns = columns
-
-        # Write the modified or unmodified line to the output file
-        outfile.write(" ".join(modified_columns) + "\n")
+            # Before the specified line, keep the row as it is
+            modified_row = row
+        
+        # Write the modified or unmodified row to the output file
+        csv_writer.writerow(modified_row)
 
 print("Processing complete. Modified file saved as:", output_file_path)
