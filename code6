@@ -1,19 +1,31 @@
-def find_and_remove_matching_rows(data):
-    to_remove = set()
-    for i in range(len(data)):
-        for j in range(i + 1, len(data)):
-            if i in to_remove or j in to_remove:
-                continue
-            
-            row1, row2 = data[i], data[j]
-            
-            if (row1[4] == 'CNY.CASH' and row2[4] == 'CNH.CASH') or (row1[4] == 'CNH.CASH' and row2[4] == 'CNY.CASH'):
-                if (row1[0] == row2[1] and row1[1] == row2[0] and  
-                    row1[2] == row2[2] and  
-                    row1[6] == row2[6]):    
-                    to_remove.update([i, j])  
-    
-    for index in sorted(to_remove, reverse=True):
-        del data[index]
-    
-    return data
+# Path to the file
+input_file_path = "path/to/your/large_file.txt"
+output_file_path = "path/to/your/modified_large_file.txt"
+
+# Line number to start modifications (Python is zero-indexed, so subtract 1)
+start_line = 1497590
+
+# Open the file for reading and writing
+with open(input_file_path, 'r') as infile, open(output_file_path, 'w') as outfile:
+    # Iterate through each line with an index
+    for line_num, line in enumerate(infile):
+        # Split the line into columns
+        columns = line.strip().split()
+
+        # If we're past the starting line, modify the line
+        if line_num >= start_line:
+            # Check if the line has at least six columns
+            if len(columns) >= 6:
+                # Remove the fifth column and shift remaining columns to the left
+                modified_columns = columns[:4] + columns[5:]
+            else:
+                # If there are fewer than six columns, keep the line as it is
+                modified_columns = columns
+        else:
+            # Before the specified line, keep the line as it is
+            modified_columns = columns
+
+        # Write the modified or unmodified line to the output file
+        outfile.write(" ".join(modified_columns) + "\n")
+
+print("Processing complete. Modified file saved as:", output_file_path)
