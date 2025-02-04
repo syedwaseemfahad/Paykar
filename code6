@@ -1,1 +1,28 @@
-SELECT DISTINCT a.FamilyID, a.FamilyTypeID, a.ListingID, a.ProcessStateCode, b.Priority, b.CashConversionCode, b.BlockedAsAtDate, a.AsAtDate, a.LastRevision, a.RowID, COALESCE(c.IsHeaderOnly, d.IsHeaderOnly) AS IsHeaderOnly, CASE WHEN c.IndexID IS NOT NULL THEN 'Index' WHEN d.ETFID IS NOT NULL THEN 'ETF' ELSE 'Unknown' END AS AssetType FROM tbIMSNotification a JOIN tbIMSFilter b ON a.FamilyID = b.FamilyID AND a.FamilyTypeID = b.FamilyTypeID LEFT JOIN tblIndex c ON b.IndexOrETFID = c.IndexID LEFT JOIN tblETF d ON b.IndexOrETFID = d.ETFID WHERE a.ListingID =
+SELECT DISTINCT 
+    a.FamilyID, 
+    a.FamilyTypeID, 
+    a.ListingID, 
+    a.ProcessStateCode, 
+    b.Priority, 
+    b.CashConversionCode, 
+    b.BlockedAsAtDate, 
+    a.AsAtDate, 
+    a.LastRevision, 
+    a.RowID, 
+    CASE 
+        WHEN a.FamilyID = 1 THEN c.IsHeaderOnly 
+        WHEN a.FamilyID = 2 THEN d.IsHeaderOnly 
+    END AS IsHeaderOnly,
+    CASE 
+        WHEN a.FamilyID = 1 THEN 'INDEX' 
+        WHEN a.FamilyID = 2 THEN 'ETF' 
+    END AS AssetType
+FROM tbIMSNotification a
+JOIN tbIMSFilter b 
+    ON a.FamilyID = b.FamilyID
+    AND a.FamilyTypeID = b.FamilyTypeID
+LEFT JOIN tblIndex c 
+    ON a.FamilyID = 1 AND b.IndexOrETFID = c.IndexID
+LEFT JOIN tblETF d 
+    ON a.FamilyID = 2 AND b.IndexOrETFID = d.ETFID
+WHERE a.ListingID = 78232;
