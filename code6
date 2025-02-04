@@ -9,20 +9,16 @@ SELECT DISTINCT
     a.AsAtDate, 
     a.LastRevision, 
     a.RowID, 
-    CASE 
-        WHEN a.FamilyID = 1 THEN c.IsHeaderOnly 
-        WHEN a.FamilyID = 2 THEN d.IsHeaderOnly 
-    END AS IsHeaderOnly,
-    CASE 
-        WHEN a.FamilyID = 1 THEN 'INDEX' 
-        WHEN a.FamilyID = 2 THEN 'ETF' 
-    END AS AssetType
+    x.IsHeaderOnly,
+    x.AssetType
 FROM tbIMSNotification a
 JOIN tbIMSFilter b 
     ON a.FamilyID = b.FamilyID
     AND a.FamilyTypeID = b.FamilyTypeID
-LEFT JOIN tblIndex c 
-    ON a.FamilyID = 1 AND b.IndexOrETFID = c.IndexID
-LEFT JOIN tblETF d 
-    ON a.FamilyID = 2 AND b.IndexOrETFID = d.ETFID
+JOIN (
+    SELECT IndexID AS IndexOrETFID, IsHeaderOnly, 'INDEX' AS AssetType FROM tblIndex
+    UNION
+    SELECT ETFID AS IndexOrETFID, IsHeaderOnly, 'ETF' AS AssetType FROM tblETF
+) x 
+    ON b.IndexOrETFID = x.IndexOrETFID
 WHERE a.ListingID = 78232;
